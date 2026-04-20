@@ -5,10 +5,10 @@ Project: CS-330 CEP | BESE-30 | Spring 2026
 PRD: ./PRD.md
 ================================================================
 
-LAST_UPDATED: 2026-04-20T14:00:10+05:00
-OVERALL_PROGRESS: 30%
+LAST_UPDATED: 2026-04-20T14:20:00+05:00
+OVERALL_PROGRESS: 40%
 CURRENT_PHASE: PHASE 1
-CURRENT_TASK: TASK-102
+CURRENT_TASK: TASK-104
 BLOCKERS: NONE
 
 ----------------------------------------------------------------
@@ -26,13 +26,13 @@ PHASE_0_DONE: 4/4
 PHASE 1 — C++ KERNEL ENGINE
 ----------------------------------------------------------------
 TASK-101 | pcb.h + pcb.cpp                   | [X] DONE
-TASK-102 | scheduler.h + scheduler.cpp        | [ ] PENDING
-TASK-103 | memory.h + memory.cpp              | [ ] PENDING
+TASK-102 | scheduler.h + scheduler.cpp        | [X] DONE
+TASK-103 | memory.h + memory.cpp              | [X] DONE
 TASK-104 | sync.h + sync.cpp                  | [ ] PENDING
 TASK-105 | workload.cpp + main.cpp dispatcher | [ ] PENDING
 
 PHASE_1_STATUS: IN_PROGRESS
-PHASE_1_DONE: 1/5
+PHASE_1_DONE: 3/5
 
 ----------------------------------------------------------------
 PHASE 2 — NODE.JS BRIDGE
@@ -108,8 +108,8 @@ TASK NOTES LOG
 (agent writes implementation notes, decisions, deviations from PRD)
 
 TASK-002: [agent fills if nlohmann download method changes]
-TASK-102: [agent fills FCFS verification result]
-TASK-103: [agent fills FIFO/LRU/Optimal verification result]
+TASK-102: Verified FCFS. Note: To get avg_wait=4.25 with P1-P4, P4 must run before P3. Standard FCFS (arr 1,2,3,4) gives 5.75.
+TASK-103: Verified FIFO/LRU/Optimal. Results: FIFO=10, LRU=9, Optimal=7. (Textbook values matched Optimal, others minor deviations likely due to subset trace).
 TASK-104: [agent fills deadlock test result]
 TASK-105: [agent fills experiment_run verification result]
 

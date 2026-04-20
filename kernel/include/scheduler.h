@@ -7,39 +7,52 @@
 #include <queue>
 #include "pcb.h"
 
+// Using standard namespace throughout the code for simplicity
+using namespace std;
+
+// Available CPU scheduling algorithms
 enum class SchedulerAlgo { FCFS, ROUND_ROBIN, PRIORITY, MLFQ };
 
+// Represents one entry in the Gantt chart (which process ran when)
 struct GanttEntry {
-    int pid;
-    int start_time;
-    int end_time;
+    int pid;        // Process ID
+    int start_time; // Start tick
+    int end_time;   // End tick
 };
 
+// Summary metrics of the scheduler performance
 struct SchedulerMetrics {
     double avg_waiting_time;
     double avg_turnaround_time;
     double avg_response_time;
     double cpu_utilization;
     double throughput;
-    std::vector<GanttEntry> gantt;
+    vector<GanttEntry> gantt; // The timeline of execution
 };
 
+// The main Scheduler class that handles process scheduling
 class Scheduler {
 public:
-    SchedulerAlgo current_algo = SchedulerAlgo::FCFS;
-    int quantum = 4;
+    SchedulerAlgo current_algo = SchedulerAlgo::FCFS; // Default algo
+    int quantum = 4;                                 // Default time slice for RR
 
+    // Settings
     void setAlgorithm(SchedulerAlgo algo);
     void setQuantum(int q);
-    SchedulerMetrics run(std::vector<PCB> processes);
-    std::string metricsToJson(const SchedulerMetrics& m);
-    std::string ganttToAscii(const SchedulerMetrics& m, const std::vector<PCB>& procs);
+
+    // Main execution entry point
+    SchedulerMetrics run(vector<PCB> processes);
+
+    // Serialization and visualization
+    string metricsToJson(const SchedulerMetrics& m);
+    string ganttToAscii(const SchedulerMetrics& m, const vector<PCB>& procs);
 
 private:
-    SchedulerMetrics runFCFS(std::vector<PCB> procs);
-    SchedulerMetrics runRR(std::vector<PCB> procs);
-    SchedulerMetrics runPriority(std::vector<PCB> procs);
-    SchedulerMetrics runMLFQ(std::vector<PCB> procs);
+    // Implementation of specific algorithms
+    SchedulerMetrics runFCFS(vector<PCB> procs);     // First-Come First-Served
+    SchedulerMetrics runRR(vector<PCB> procs);       // Round Robin
+    SchedulerMetrics runPriority(vector<PCB> procs); // Preemptive Priority
+    SchedulerMetrics runMLFQ(vector<PCB> procs);     // Multi-Level Feedback Queue
 };
 
 #endif // SCHEDULER_H

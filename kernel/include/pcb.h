@@ -5,33 +5,47 @@
 #include <vector>
 #include "json.hpp"
 
-enum class ProcessState { NEW, READY, RUNNING, WAITING, TERMINATED };
+// Use standard namespace for easier coding as requested
+using namespace std;
 
-std::string stateToString(ProcessState s);
+// Enum to represent the lifecycle of a process
+enum class ProcessState { 
+    NEW,        // Just created
+    READY,      // Waiting in ready queue
+    RUNNING,    // Currently executing on CPU
+    WAITING,    // Blocked/Waiting for I/O or event
+    TERMINATED  // Finished execution
+};
 
+// Converts the enum state to a readable string
+string stateToString(ProcessState s);
+
+// Process Control Block - stores all info about a process
 struct PCB {
-    int pid;
-    std::string name;
-    ProcessState state;
-    int priority; // 1-10
-    int burst_time;
-    int remaining_time;
-    int arrival_time;
-    int waiting_time;
-    int turnaround_time;
-    int response_time = -1;
-    int program_counter;
+    int pid;                // Process ID
+    string name;            // Process Name
+    ProcessState state;     // Current State
+    int priority;           // Priority (1-10, higher is better)
+    int burst_time;         // Total CPU time needed
+    int remaining_time;     // Time left to finish
+    int arrival_time;       // Time when process entered system
+    int waiting_time;       // Time spent in ready queue
+    int turnaround_time;    // Total time from arrival to completion
+    int response_time = -1; // Time from arrival to first execution
+    int program_counter;    // Current instruction pointer
 };
 
+// Thread Control Block - stores info about a thread
 struct TCB {
-    int tid;
-    int parent_pid;
-    int stack_ptr;
-    ProcessState state;
+    int tid;                // Thread ID
+    int parent_pid;         // PID of the owner process
+    int stack_ptr;          // Pointer to thread stack
+    ProcessState state;     // Current State
 };
 
-std::string pcbToJson(const PCB& p);
-std::string pcbListToJson(const std::vector<PCB>& list);
-std::string tcbToJson(const TCB& t);
+// Serialization helpers to convert objects to JSON strings
+string pcbToJson(const PCB& p);
+string pcbListToJson(const vector<PCB>& list);
+string tcbToJson(const TCB& t);
 
 #endif // PCB_H
