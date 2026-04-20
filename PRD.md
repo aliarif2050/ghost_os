@@ -57,9 +57,15 @@ ghostkernel/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Terminal.tsx
+│   │   │   ├── BootSequence.tsx
+│   │   │   ├── Dock.tsx
 │   │   │   ├── StatusBar.tsx
-│   │   │   └── BootSequence.tsx
+│   │   │   ├── WindowManager.tsx
+│   │   │   ├── TerminalApp.tsx
+│   │   │   ├── ProcessManager.tsx
+│   │   │   ├── SchedulerView.tsx
+│   │   │   ├── MemoryViewer.tsx
+│   │   │   └── SyncVisualizer.tsx
 │   │   ├── commands/
 │   │   │   ├── index.ts
 │   │   │   ├── ps.ts
@@ -67,7 +73,8 @@ ghostkernel/
 │   │   │   ├── mem.ts
 │   │   │   └── sync.ts
 │   │   ├── store/
-│   │   │   └── kernelStore.ts
+│   │   │   ├── kernelStore.ts
+│   │   │   └── windowStore.ts
 │   │   └── App.tsx
 │   ├── index.html
 │   ├── tailwind.config.js
@@ -453,7 +460,7 @@ UPDATE_PROGRESS: Mark TASK-201 and TASK-202 DONE.
 
 ---
 
-## PHASE 3 — REACT FRONTEND
+## PHASE 3 — REACT FRONTEND (DESKTOP ENVIRONMENT)
 
 ### TASK-301: kernelStore.ts
 FILE: frontend/src/store/kernelStore.ts
@@ -513,29 +520,34 @@ IMPLEMENT:
     500  "Type 'help' for available commands."
     300  ""
 
-### TASK-303: StatusBar.tsx
+### TASK-303: StatusBar.tsx (Desktop Top Bar)
 FILE: frontend/src/components/StatusBar.tsx
 IMPLEMENT:
-  - Fixed top bar, height 32px, full width
-  - bg: #111111, border-bottom: 1px solid #ffb000
-  - Left:   "GHOSTKERNEL OS" bold amber
+  - Fixed top bar across the entire desktop, height 32px, full width, z-index above windows
+  - bg: rgba(10,10,10,0.9), backdrop-filter: blur(8px), border-bottom: 1px solid #ffb000
+  - Left:   "GHOSTKERNEL OS" bold amber + engine status indicator (green dot if online)
   - Center: clickable algo badge cycling fcfs→rr→priority→mlfq on click
-            badge style: border 1px solid amber, px-2, uppercase
-  - Right:  "CPU:[████░░░░] XX%  MEM:XX%  PROCS:X  UP:XXXs"
+            badge style: border 1px solid amber, px-2, uppercase monospace
+  - Right:  "CPU:[████░░░░] XX%  MEM:XX%  PROCS:X  UP:XXXs" + clock (HH:MM:SS)
             derive CPU% as (running_procs / max(total_procs,1)) * 100
             derive MEM% as (used_frames / 32) * 100
   - All values from kernelStore, update reactively
+  - This bar sits above the desktop workspace and all windows (highest z-index layer)
 
-### TASK-304: Terminal.tsx with xterm.js
-FILE: frontend/src/components/Terminal.tsx
+### TASK-304: TerminalApp.tsx (Terminal in Floating Window)
+FILE: frontend/src/components/TerminalApp.tsx
 IMPLEMENT:
+  - Terminal is now an "app" that opens inside a floating managed window (via WindowManager)
+  - The component receives NO position/size props — WindowManager handles all positioning
   - Create xterm Terminal instance with options:
       theme: { background:'#0a0a0a', foreground:'#ffb000',
                cursor:'#ffb000', selectionBackground:'#ffb000' }
       fontFamily: 'JetBrains Mono, monospace'
       fontSize: 14
       cursorBlink: true
-  - Use FitAddon to fill container div
+  - Use FitAddon to fill the window's CONTENT AREA (not full screen)
+  - Re-fit terminal whenever the parent window is resized or focused
+    (listen to windowStore dimension changes for this window's ID)
   - Mount terminal into a div ref on component mount
   - Render prompt: "\x1b[33mroot@ghostkernel:~$\x1b[0m "  (amber colored)
   - On keypress:
@@ -656,31 +668,210 @@ IMPLEMENT command router:
       exit                      → sendCommand({cmd:'exit'}) → "Shutting down GhostKernel..."
       unknown                   → "Command not found: <x>. Type 'help' for list."
 
-### TASK-306: App.tsx
+### TASK-306: App.tsx (Desktop Environment Shell)
 FILE: frontend/src/App.tsx
 IMPLEMENT:
   - State: booted(bool, default false)
   - If !booted: <BootSequence onComplete={()=>setBooted(true)} />
-  - If booted:
-      <div className="flex flex-col h-screen">
-        <StatusBar />
-        <div className="flex-1 overflow-hidden">
-          <Terminal />
+  - If booted: Render full desktop environment:
+      <div className="desktop-env h-screen w-screen relative overflow-hidden">
+        {/* Background: dark CRT wallpaper with subtle grid/scanline pattern */}
+        <div className="wallpaper absolute inset-0 bg-[#080808]" />
+        <StatusBar />                    {/* Fixed top bar — highest z-index */}
+        <Dock />                         {/* Left-side app dock/sidebar */}
+        <div className="desktop-workspace absolute inset-0 mt-8 ml-16">
+          <WindowManager />             {/* Renders all floating windows */}
         </div>
       </div>
   - On booted: call kernelStore.checkEngine()
-    If engine offline: terminal writes:
+    If engine offline: auto-open a Terminal window with warning:
       "⚠ WARNING: Kernel engine offline."
       "Start server: cd server && node index.js"
       "Then refresh the page."
+  - Auto-open a Terminal window on first boot as the default landing experience
+
+### TASK-307: Window Manager System (Zustand + React)
+FILE: frontend/src/store/windowStore.ts
+FILE: frontend/src/components/WindowManager.tsx
+IMPLEMENT Zustand store (windowStore.ts):
+  State:
+    windows: WindowState[]
+      WindowState: { id:string, title:string, appType:string,
+                     x:number, y:number, width:number, height:number,
+                     zIndex:number, isMinimized:boolean, isFocused:boolean }
+    nextZIndex: number        (default 100)
+    activeWindowId: string | null
+  Actions:
+    openWindow(appType, title, initialSize?): string
+      → create WindowState with unique id, staggered default position, push to array
+      → return the new window id
+    closeWindow(id): void       → remove from array
+    focusWindow(id): void       → set activeWindowId, assign nextZIndex++ to that window
+    minimizeWindow(id): void    → toggle isMinimized
+    moveWindow(id, x, y): void  → update position (clamped to desktop bounds)
+    resizeWindow(id, w, h): void → update dimensions (min 400x300)
+
+IMPLEMENT WindowManager.tsx:
+  - Renders all non-minimized windows from windowStore
+  - Each window is a floating <div> with absolute positioning:
+      style: { left: x, top: y, width: w, height: h, zIndex }
+  - Window chrome (title bar + borders):
+      Title bar: 28px tall, bg #111, border-bottom 1px solid #ffb000
+        Left:  app icon (emoji or CSS-drawn) + window title (amber monospace)
+        Right: [—] minimize   [✕] close   (amber text, bright on hover)
+      Title bar is the drag handle (onMouseDown starts drag, onMouseMove updates pos,
+        onMouseUp ends drag — use document-level listeners for smooth dragging)
+      Border: 1px solid rgba(255,176,0,0.4), border-radius 4px
+      Content area: bg #0a0a0a, overflow hidden, flex-1
+      Resize handle: 12x12 area at bottom-right corner, cursor nwse-resize
+      Window shadow: 0 0 20px rgba(255,176,0,0.08)
+  - On click anywhere in window: call focusWindow(id) → brings to front via z-index
+  - Focused window: border brightens to rgba(255,176,0,0.8)
+  - Content area renders the app component based on appType:
+      'terminal'          → <TerminalApp />
+      'process-manager'   → <ProcessManager />
+      'scheduler'         → <SchedulerView />
+      'memory'            → <MemoryViewer />
+      'sync'              → <SyncVisualizer />
+
+### TASK-308: Dock.tsx (App Launcher Sidebar)
+FILE: frontend/src/components/Dock.tsx
+IMPLEMENT:
+  - Fixed left-side vertical dock, width 64px, full height below StatusBar
+  - bg: rgba(10,10,10,0.85), backdrop-filter: blur(8px), border-right: 1px solid #333
+  - Contains icon buttons for each application:
+      Terminal (>_)         → windowStore.openWindow('terminal', 'Terminal')
+      Process Manager (☰)  → windowStore.openWindow('process-manager', 'Process Manager')
+      CPU Scheduler (▤)    → windowStore.openWindow('scheduler', 'CPU Scheduler')
+      Memory Viewer (⬡)    → windowStore.openWindow('memory', 'Memory Viewer')
+      Sync Demo (⟳)        → windowStore.openWindow('sync', 'Sync Demo')
+  - Each icon: 48x48 area with centered content
+      Default: dim amber (#555) icon/text
+      Hover: bright amber (#ffb000) with subtle glow (box-shadow 0 0 8px rgba(255,176,0,0.3))
+      Tooltip: app name on hover (positioned to the right of the icon)
+  - Active indicator: 3px tall amber bar on left edge next to icons with open windows
+  - Use CSS-drawn icons or simple Unicode glyphs for retro aesthetic
+
+### TASK-309: ProcessManager.tsx (GUI App Window)
+FILE: frontend/src/components/ProcessManager.tsx
+IMPLEMENT:
+  - Renders inside a managed window (no position props — WindowManager handles layout)
+  - Auto-refreshes process list from kernelStore every 2 seconds
+  - Top toolbar:
+      [SPAWN] button → expands inline form: name (text), burst (number), priority (number)
+        → dispatches spawn command on submit, collapses form
+      [WORKLOAD ▼] dropdown → options: cpu_bound, io_bound, mixed
+        → dispatches workload command to generate batch processes
+      [REFRESH] button → manual refresh of process list
+  - Main area: process table with columns:
+      PID | Name | State | Priority | Burst | Remaining | Wait | TAT
+  - State column uses colored dot indicators:
+      ● green (#00ff41)  = RUNNING
+      ● amber (#ffb000)  = READY
+      ● red   (#ff3c3c)  = TERMINATED
+      ● dim   (#555555)  = WAITING / NEW
+  - Action column per row:
+      [KILL] button (red text) → sends kill command, refreshes list after response
+  - Empty state: centered message "No processes. Click SPAWN or load a WORKLOAD."
+  - Table styling: monospace font, amber text on #0a0a0a bg, subtle row hover (#111)
+  - Header row: border-bottom 1px solid #ffb000, uppercase amber text, sticky top
+
+### TASK-310: SchedulerView.tsx (GUI App Window)
+FILE: frontend/src/components/SchedulerView.tsx
+IMPLEMENT:
+  - Renders inside a managed window
+  - Top section: Algorithm Controls
+      Four buttons: [FCFS] [RR] [PRIORITY] [MLFQ]
+        Active algo: filled amber bg (#ffb000), dark text (#0a0a0a)
+        Inactive: outlined amber border, amber text
+      Quantum slider: visible when RR or MLFQ selected (range 1-20, default 4)
+      [RUN SCHEDULER] button: bright amber, triggers sched_run command
+  - Middle section: Gantt Chart Visualization
+      Render scheduler results as horizontal bars on a time axis:
+        X-axis: time ticks (0, 4, 8, 12, ...) with grid lines
+        Y-axis: process labels (P1, P2, P3, ...)
+        Each process: colored bar segment (amber/green/red palette, one color per PID)
+        Bar shows PID label inside if wide enough
+      Chart background: #0a0a0a with #111 gridlines
+      Render using div-based bars (no external chart library needed for Gantt)
+  - Bottom section: Metrics Panel
+      Display as styled stat cards in a grid (2×3 or 3×2):
+        Avg Waiting Time | Avg Turnaround Time | Avg Response Time
+        CPU Utilization   | Throughput          | Process Count
+      Each card: border 1px solid #333, amber value text, dim (#555) label text
+  - [COMPARE ALL] button: runs sched_compare with current workload
+      Shows side-by-side comparison table: rows=algos, cols=metrics
+      Highlight the best (winning) algo per metric column in green (#00ff41)
+
+### TASK-311: MemoryViewer.tsx (GUI App Window)
+FILE: frontend/src/components/MemoryViewer.tsx
+IMPLEMENT:
+  - Renders inside a managed window
+  - Main display: 32-cell visual grid (8×4) representing physical memory frames
+      Each cell: ~60×60px box showing Frame #, PID (or "FREE"), Page #
+      Color coding:
+        Allocated: amber border + amber tint background
+        Free: dim border (#333), dark empty interior
+        Dirty: red left-border accent (#ff3c3c)
+        Referenced: green dot indicator (#00ff41)
+      Hover tooltip: full frame details (V/D/R flags, load_time, last_used)
+  - Right panel: Memory Stats card
+      Used frames / 32 (with amber progress bar)
+      Free frames / 32
+      Page faults counter
+      Hit rate % (with progress bar, green accent)
+      Current replacement policy badge
+  - Bottom toolbar:
+      Policy selector: [FIFO] [LRU] [OPTIMAL] toggle buttons
+        Active: filled amber, inactive: outlined
+        Clicking sends mem_policy command
+      [ALLOCATE] button → inline form (PID, num_pages) → mem_alloc command
+      [FREE] button → inline form (PID) → mem_free command
+      [TRANSLATE] button → inline form (PID, virtual_addr) → shows physical addr result
+  - [COMPARE POLICIES] button: runs mem_compare
+      Shows comparison panel: bar chart of page faults per policy
+      Highlight OPTIMAL as winner with green (#00ff41) accent
+
+### TASK-312: SyncVisualizer.tsx (GUI App Window)
+FILE: frontend/src/components/SyncVisualizer.tsx
+IMPLEMENT:
+  - Renders inside a managed window
+  - Scenario selector: tab bar at top
+      [Producer-Consumer] [Dining Philosophers] [Reader-Writer] [Deadlock Demo]
+  - Each scenario has a [RUN] button with configurable parameters:
+      Producer-Consumer: items (default 10), buffer_size (default 5)
+      Dining Philosophers: num_philosophers (default 5), allow_deadlock=false
+      Deadlock Demo: num_philosophers (default 5), allow_deadlock=true
+      Reader-Writer: readers (default 3), writers (default 2)
+  - Timeline view: vertical scrolling event log
+      Each event row: "[T=XXX] P<pid> → <action> <resource>"
+      Color coded:
+        LOCK/SIGNAL events: #00ff41 (green) text
+        BLOCKED events: #ffb000 (amber) text
+        DEADLOCK events: #ff3c3c (red) bold text with CSS pulse animation
+      Auto-scroll to latest event as they stream in
+  - Visual indicator panel (scenario-specific, shown alongside timeline):
+      Producer-Consumer: animated buffer fill-level bar (items in buffer / max)
+      Dining Philosophers: circular arrangement of 5 philosopher nodes and 5 fork edges
+        Show fork ownership (amber=held, dim=free) and philosopher states
+        (green=eating, amber=thinking, red=waiting)
+      Reader-Writer: resource block with reader count / writer count indicators
+  - DEADLOCK alert: red banner with pulse animation across top of window when detected
+      Text: "⚠ DEADLOCK DETECTED: circular wait cycle" in bold #ff3c3c
+  - Summary panel at bottom: shows final stats after scenario completes
 
 VERIFY:
   npm run dev starts without errors.
   Browser shows boot sequence animation.
-  After boot: amber prompt visible with cursor blinking.
-  Typing 'help' shows command list.
-  Typing 'ghostfetch' (with server running) shows ASCII art.
-UPDATE_PROGRESS: Mark TASK-301 through TASK-306 DONE.
+  After boot: full desktop environment with wallpaper, dock, and status bar.
+  Clicking dock icons opens floating windows.
+  Windows are draggable, resizable, closable, and stackable (z-index).
+  Terminal works inside a floating window with amber prompt and cursor.
+  GUI app windows display kernel data with retro amber/dark CRT styling.
+  All terminal commands still function correctly within the windowed terminal.
+  Typing 'help' shows command list in terminal window.
+  Typing 'ghostfetch' (with server running) shows ASCII art in terminal window.
+UPDATE_PROGRESS: Mark TASK-301 through TASK-312 DONE.
 
 ---
 
@@ -778,10 +969,15 @@ The project is complete when ALL of the following are true:
   cmake --build kernel/build → exits 0
   echo '{"cmd":"experiment_run"}' | ./kernel/build/ghostkernel_engine → 12 results
   node server/index.js → starts, curl /ping returns ok
-  npm run dev → boot sequence shown, terminal functional
-  All 20+ commands tested and working
-  DEADLOCK highlighted in red in terminal
-  ghostfetch shows live stats
+  npm run dev → boot sequence → full desktop environment rendered
+  Desktop shows: wallpaper background, top status bar, left dock sidebar
+  Window Manager: open, drag, resize, close, minimize, z-stack all working
+  Terminal opens as floating windowed app with functional xterm.js
+  GUI apps (ProcessManager, SchedulerView, MemoryViewer, SyncVisualizer) render and function
+  All 20+ CLI commands tested and working inside the terminal window
+  DEADLOCK highlighted in red in both terminal and SyncVisualizer GUI
+  ghostfetch shows live stats in terminal window
+  Multiple windows can be open simultaneously with correct z-index stacking
   report/charts.html renders 4 charts
   progress.txt shows OVERALL_PROGRESS: 100%
 
@@ -814,4 +1010,4 @@ The project is complete when ALL of the following are true:
 
 8. xterm.js version: use xterm@5.x for React 18 compatibility.
 
-9. Do not modify PRD.md. Only update progress.txt.
+9. PRD.md may be updated for architectural pivots. Always update progress.txt.

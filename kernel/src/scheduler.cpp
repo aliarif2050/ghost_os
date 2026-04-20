@@ -361,6 +361,8 @@ SchedulerMetrics Scheduler::runMLFQ(vector<PCB> procs) {
             
             update_arrivals();
             
+            if (rem_burst[idx] == 0) break;
+            
             // Check preemption/boost
             if (current_time - last_boost >= 50) { 
                 if (rem_burst[idx] > 0) { q0.push(idx); curr_q_level[idx] = 0; }

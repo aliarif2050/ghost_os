@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GhostKernel OS - Experiment Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #1d2021;
+            --amber: #fabd2f;
+            --green: #00ff41;
+            --red: #ff3c3c;
+            --dim: #555555;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--amber);
+            font-family: 'Courier New', Courier, monospace;
+            padding: 2rem;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        h1, h2 {
+            border-bottom: 2px solid var(--amber);
+            padding-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        .chart-container {
+            width: 45%;
+            min-width: 400px;
+            margin: 1rem;
+            display: inline-block;
+            background: rgba(255, 176, 0, 0.05);
+            border: 1px solid var(--dim);
+            padding: 1rem;
+        }
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>GhostKernel Performance Report</h1>
+    
+    <div class="flex-container">
+        <!-- Chart 1: Avg Wait Time -->
+        <div class="chart-container">
+            <canvas id="waitChart"></canvas>
+        </div>
+        
+        <!-- Chart 2: Avg TAT -->
+        <div class="chart-container">
+            <canvas id="tatChart"></canvas>
+        </div>
+
+        <!-- Chart 3: Memory Compare -->
+        <div class="chart-container">
+            <canvas id="memChart"></canvas>
+        </div>
+
+        <!-- Chart 4: CPU Utils -->
+        <div class="chart-container">
+            <canvas id="cpuChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // CRT Palette colors 
+        const c_fcfs = '#fabd2f';    // amber
+        const c_rr = '#00ff41';      // green
+        const c_priority = '#ff3c3c'; // red
+        const c_mlfq = '#555555';    // dim
+
+        // Experiment Data
+        const labels = ['CPU Bound', 'I/O Bound', 'Mixed'];
+        
+        // Wait time datasets
+        const waitDatasets = [
+            { label: 'FCFS', backgroundColor: c_fcfs, data: [45.2, 10.5, 25.8] },
+            { label: 'RR', backgroundColor: c_rr, data: [52.1, 11.2, 28.5] },
+            { label: 'Priority', backgroundColor: c_priority, data: [48.6, 10.8, 26.5] },
+            { label: 'MLFQ', backgroundColor: c_mlfq, data: [50.4, 11.0, 26.2] }
+        ];
+
+        // TAT time datasets
+        const tatDatasets = [
+            { label: 'FCFS', backgroundColor: c_fcfs, data: [68.5, 15.2, 38.4] },
+            { label: 'RR', backgroundColor: c_rr, data: [75.3, 16.0, 41.2] },
+            { label: 'Priority', backgroundColor: c_priority, data: [71.8, 15.6, 39.5] },
+            { label: 'MLFQ', backgroundColor: c_mlfq, data: [73.1, 15.8, 39.0] }
+        ];
+
+        // Chart defaults
+        Chart.defaults.color = '#fabd2f';
+        Chart.defaults.borderColor = '#333333';
+
+        // 1. Wait Chart
+        new Chart(document.getElementById('waitChart'), {
+            type: 'bar',
+            data: { labels, datasets: waitDatasets },
+            options: { plugins: { title: { display: true, text: 'Average Waiting Time (ticks)' } } }
+        });
+
+        // 2. TAT Chart
+        new Chart(document.getElementById('tatChart'), {
+            type: 'bar',
+            data: { labels, datasets: tatDatasets },
+            options: { plugins: { title: { display: true, text: 'Average Turnaround Time (ticks)' } } }
+        });
+
+        // 3. Page Faults Chart (Memory Replacement)
+        new Chart(document.getElementById('memChart'), {
+            type: 'bar',
+            data: { 
+                labels: ['FIFO', 'LRU', 'Optimal'], 
+                datasets: [{
+                    label: 'Page Faults',
+                    backgroundColor: [c_fcfs, c_priority, c_rr],
+                    data: [9, 10, 7]
+                }] 
+            },
+            options: { plugins: { title: { display: true, text: 'Page Faults: Ref String vs 3 Frames' } } }
+        });
+
+        // 4. CPU Utilization
+        new Chart(document.getElementById('cpuChart'), {
+            type: 'bar',
+            data: { 
+                labels: ['FCFS', 'RR', 'Priority', 'MLFQ'], 
+                datasets: [{
+                    label: 'CPU % (Mixed Workload)',
+                    backgroundColor: c_amber,
+                    data: [75.3, 82.5, 78.1, 80.2]
+                }] 
+            },
+            options: { plugins: { title: { display: true, text: 'CPU Utilization on Mixed Workload' } } }
+        });
+        
+        const c_amber = '#fabd2f';
+        Chart.getChart("cpuChart").data.datasets[0].backgroundColor = c_amber;
+        Chart.getChart("cpuChart").update();
+    </script>
+</body>
+</html>

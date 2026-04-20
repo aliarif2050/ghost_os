@@ -1,16 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
-  --amber: #ffb000;
+  --amber: #fabd2f;
   --green: #00ff41;
-  --red:   #ff3c3c;
-  --dim:   #555555;
-  --bg:    #0a0a0a;
+  --red: #ff3c3c;
+  --dim: #555555;
+  --bg: #1d2021;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   background: var(--bg);
@@ -24,10 +26,64 @@ body::after {
   content: '';
   position: fixed;
   inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 2px,
-    rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px
-  );
+  /* background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.015) 3px,
+    rgba(0, 0, 0, 0.015) 4px
+  ); */
   pointer-events: none;
   z-index: 9999;
+}
+
+/* Glassmorphism & Neon Effects */
+.glass-panel {
+  background: rgba(13, 17, 23, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.neon-border {
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.1), inset 0 0 10px rgba(0, 240, 255, 0.05);
+}
+
+.neon-text-amber {
+  text-shadow: 0 0 8px rgba(250, 189, 47, 0.5);
+}
+
+.neon-text-cyan {
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+
+.frame-glow {
+  transition: all 0.3s ease;
+}
+
+.frame-glow:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 15px currentColor;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.scanner::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
 }

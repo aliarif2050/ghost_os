@@ -24,12 +24,28 @@ void MemoryManager::setPolicy(PagePolicy p) {
 // Allocate contiguous or non-contiguous frames to a process
 bool MemoryManager::allocatePages(int pid, int num_pages) {
     int free_count = 0;
-    for (const auto& f : frames) {
-        if (f.pid == -1) free_count++;
+    for (const auto& f : frames) if (f.pid == -1) free_count++;
+
+    // NEW: Greedy Allocation. Instead of rejecting, we evict if necessary.
+    if (num_pages > TOTAL_FRAMES) return false;
+
+    // While we don't have enough free frames, evict victims
+    while (free_count < num_pages) {
+        int victim_idx = -1;
+        if (policy == PagePolicy::FIFO) victim_idx = fifoReplace();
+        else victim_idx = lruReplace(); // Default to LRU for greedy alloc
+        
+        if (victim_idx != -1) {
+            // Free the victim frame
+            frames[victim_idx].pid = -1;
+            frames[victim_idx].page_num = -1;
+            frames[victim_idx].valid = false;
+            frames[victim_idx].dirty = false;
+            frames[victim_idx].referenced = false;
+            free_count++;
+            total_faults++; // Counts as a fault because we're forcing a replacement
+        } else break;
     }
-    
-    // Check if we have enough empty frames
-    if (free_count < num_pages) return false;
     
     vector<int> allocated_indices;
     int remaining = num_pages;
@@ -40,6 +56,8 @@ bool MemoryManager::allocatePages(int pid, int num_pages) {
             frames[i].pid = pid;
             frames[i].page_num = num_pages - remaining;
             frames[i].valid = true;
+            frames[i].dirty = false;
+            frames[i].referenced = false;
             frames[i].load_time = current_tick;
             frames[i].last_used = current_tick;
             allocated_indices.push_back(i);
@@ -59,6 +77,8 @@ void MemoryManager::deallocate(int pid) {
             frames[frame_idx].pid = -1;
             frames[frame_idx].page_num = -1;
             frames[frame_idx].valid = false;
+            frames[frame_idx].dirty = false;
+            frames[frame_idx].referenced = false;
         }
         page_tables.erase(pid);
     }
@@ -112,8 +132,20 @@ void MemoryManager::accessPage(int pid, int page_num, vector<int> future_refs) {
             frames[victim_idx].pid = pid;
             frames[victim_idx].page_num = page_num;
             frames[victim_idx].valid = true;
+            frames[victim_idx].dirty = false;
+            frames[victim_idx].referenced = true; // New page is immediately referenced
             frames[victim_idx].load_time = current_tick;
             frames[victim_idx].last_used = current_tick;
+        }
+    }
+}
+
+// Manually mark a page as dirty (simulation of a write)
+void MemoryManager::setDirty(int pid, int page_num, bool dirty) {
+    for (auto& f : frames) {
+        if (f.pid == pid && f.page_num == page_num) {
+            f.dirty = dirty;
+            break;
         }
     }
 }
@@ -229,6 +261,10 @@ string MemoryManager::allFramesToJson() {
         j["pid"] = f.pid;
         j["page"] = f.page_num;
         j["v"] = f.valid;
+        j["d"] = f.dirty;
+        j["r"] = f.referenced;
+        j["load_time"] = f.load_time;
+        j["last_used"] = f.last_used;
         arr.push_back(j);
     }
     return arr.dump();

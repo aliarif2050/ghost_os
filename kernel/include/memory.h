@@ -53,6 +53,7 @@ public:
     void deallocate(int pid);
     int translateAddress(int pid, int virtual_addr);
     void accessPage(int pid, int page_num, vector<int> future_refs = {});
+    void setDirty(int pid, int page_num, bool dirty);
     
     // Status and visualization
     MemoryStats getStats();

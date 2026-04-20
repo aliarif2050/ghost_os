@@ -1,0 +1,16 @@
+{
+  "name": "ghost-os",
+  "version": "1.0.0",
+  "description": "GhostKernel OS - Full Stack Kernel Simulator",
+  "scripts": {
+    "install:all": "npm install && cd server && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:frontend\"",
+    "dev:server": "cd server && node index.js",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:kernel": "cmake -S kernel -B kernel/build && cmake --build kernel/build",
+    "test:engine": "echo '{\"cmd\":\"ping\"}' | ./kernel/build/ghostkernel_engine.exe"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

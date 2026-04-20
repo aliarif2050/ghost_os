@@ -79,7 +79,7 @@ public:
 
 private:
     // Helper for DFS cycle detection
-    bool hasCycle(int start, map<int, vector<int>>& adj, vector<int>& visited, vector<int>& stack, vector<int>& cycle_path);
+    bool hasCycle(int start, map<int, vector<int>>& adj, map<int, int>& visited, vector<int>& stack, vector<int>& cycle_path);
 };
 
 #endif // SYNC_H

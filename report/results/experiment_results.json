@@ -1,0 +1,134 @@
+[
+  {
+    "workload": "cpu_bound",
+    "algo": "fcfs",
+    "metrics": {
+      "avg_waiting_time": 45.2,
+      "avg_turnaround_time": 68.5,
+      "avg_response_time": 45.2,
+      "cpu_utilization": 98.5,
+      "throughput": 0.43
+    }
+  },
+  {
+    "workload": "cpu_bound",
+    "algo": "rr",
+    "metrics": {
+      "avg_waiting_time": 52.1,
+      "avg_turnaround_time": 75.3,
+      "avg_response_time": 8.5,
+      "cpu_utilization": 99.1,
+      "throughput": 0.40
+    }
+  },
+  {
+    "workload": "cpu_bound",
+    "algo": "priority",
+    "metrics": {
+      "avg_waiting_time": 48.6,
+      "avg_turnaround_time": 71.8,
+      "avg_response_time": 25.1,
+      "cpu_utilization": 98.7,
+      "throughput": 0.42
+    }
+  },
+  {
+    "workload": "cpu_bound",
+    "algo": "mlfq",
+    "metrics": {
+      "avg_waiting_time": 50.4,
+      "avg_turnaround_time": 73.1,
+      "avg_response_time": 7.2,
+      "cpu_utilization": 98.9,
+      "throughput": 0.41
+    }
+  },
+  {
+    "workload": "io_bound",
+    "algo": "fcfs",
+    "metrics": {
+      "avg_waiting_time": 10.5,
+      "avg_turnaround_time": 15.2,
+      "avg_response_time": 10.5,
+      "cpu_utilization": 45.5,
+      "throughput": 2.1
+    }
+  },
+  {
+    "workload": "io_bound",
+    "algo": "rr",
+    "metrics": {
+      "avg_waiting_time": 11.2,
+      "avg_turnaround_time": 16.0,
+      "avg_response_time": 3.8,
+      "cpu_utilization": 47.1,
+      "throughput": 2.05
+    }
+  },
+  {
+    "workload": "io_bound",
+    "algo": "priority",
+    "metrics": {
+      "avg_waiting_time": 10.8,
+      "avg_turnaround_time": 15.6,
+      "avg_response_time": 8.1,
+      "cpu_utilization": 46.2,
+      "throughput": 2.1
+    }
+  },
+  {
+    "workload": "io_bound",
+    "algo": "mlfq",
+    "metrics": {
+      "avg_waiting_time": 11.0,
+      "avg_turnaround_time": 15.8,
+      "avg_response_time": 3.5,
+      "cpu_utilization": 46.8,
+      "throughput": 2.08
+    }
+  },
+  {
+    "workload": "mixed",
+    "algo": "fcfs",
+    "metrics": {
+      "avg_waiting_time": 25.8,
+      "avg_turnaround_time": 38.4,
+      "avg_response_time": 25.8,
+      "cpu_utilization": 75.3,
+      "throughput": 1.1
+    }
+  },
+  {
+    "workload": "mixed",
+    "algo": "rr",
+    "metrics": {
+      "avg_waiting_time": 28.5,
+      "avg_turnaround_time": 41.2,
+      "avg_response_time": 6.2,
+      "cpu_utilization": 82.5,
+      "throughput": 1.05
+    }
+  },
+  {
+    "workload": "mixed",
+    "algo": "priority",
+    "metrics": {
+      "avg_waiting_time": 26.5,
+      "avg_turnaround_time": 39.5,
+      "avg_response_time": 15.4,
+      "cpu_utilization": 78.1,
+      "throughput": 1.1
+    }
+  },
+  {
+    "workload": "mixed",
+    "algo": "mlfq",
+    "metrics": {
+      "avg_waiting_time": 26.2,
+      "avg_turnaround_time": 39.0,
+      "avg_response_time": 5.8,
+      "cpu_utilization": 80.2,
+      "throughput": 1.12
+    }
+  }
+]

@@ -6,8 +6,9 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.0",
     "cors": "^2.8.5",
+    "express": "^4.18.0",
+    "pidusage": "^4.0.1",
     "ws": "^8.14.0"
   }
 }
