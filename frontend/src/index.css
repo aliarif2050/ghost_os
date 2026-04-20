@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --amber: #ffb000;
+  --green: #00ff41;
+  --red:   #ff3c3c;
+  --dim:   #555555;
+  --bg:    #0a0a0a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--amber);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  overflow: hidden;
+  height: 100vh;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}

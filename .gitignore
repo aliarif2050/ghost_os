@@ -1,0 +1,31 @@
+# Node.js
+node_modules/
+dist/
+npm-debug.log
+yarn-error.log
+
+# C++ Build Output
+kernel/build/
+build/
+*.obj
+*.exe
+*.o
+*.out
+*.dll
+*.so
+*.dylib
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+compile_commands.json
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Data
+.DS_Store
+Thumbs.db

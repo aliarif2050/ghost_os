@@ -1,0 +1,153 @@
+================================================================
+GHOSTKERNEL OS — AGENT PROGRESS TRACKER
+Agent: Claude Code / antigravity
+Project: CS-330 CEP | BESE-30 | Spring 2026
+PRD: ./PRD.md
+================================================================
+
+LAST_UPDATED: 2026-04-20T14:00:10+05:00
+OVERALL_PROGRESS: 30%
+CURRENT_PHASE: PHASE 1
+CURRENT_TASK: TASK-102
+BLOCKERS: NONE
+
+----------------------------------------------------------------
+PHASE 0 — SCAFFOLDING
+----------------------------------------------------------------
+TASK-001 | Initialize repo structure          | [X] DONE
+TASK-002 | CMakeLists.txt + nlohmann/json     | [X] DONE
+TASK-003 | Node.js server npm setup           | [X] DONE
+TASK-004 | React frontend + Tailwind + xterm  | [X] DONE
+
+PHASE_0_STATUS: COMPLETE
+PHASE_0_DONE: 4/4
+
+----------------------------------------------------------------
+PHASE 1 — C++ KERNEL ENGINE
+----------------------------------------------------------------
+TASK-101 | pcb.h + pcb.cpp                   | [X] DONE
+TASK-102 | scheduler.h + scheduler.cpp        | [ ] PENDING
+TASK-103 | memory.h + memory.cpp              | [ ] PENDING
+TASK-104 | sync.h + sync.cpp                  | [ ] PENDING
+TASK-105 | workload.cpp + main.cpp dispatcher | [ ] PENDING
+
+PHASE_1_STATUS: IN_PROGRESS
+PHASE_1_DONE: 1/5
+
+----------------------------------------------------------------
+PHASE 2 — NODE.JS BRIDGE
+----------------------------------------------------------------
+TASK-201 | bridge.js (KernelBridge class)     | [ ] PENDING
+TASK-202 | index.js (Express + WebSocket)     | [ ] PENDING
+
+PHASE_2_STATUS: NOT_STARTED
+PHASE_2_DONE: 0/2
+
+----------------------------------------------------------------
+PHASE 3 — REACT FRONTEND
+----------------------------------------------------------------
+TASK-301 | kernelStore.ts (Zustand)           | [ ] PENDING
+TASK-302 | BootSequence.tsx                   | [ ] PENDING
+TASK-303 | StatusBar.tsx                      | [ ] PENDING
+TASK-304 | Terminal.tsx (xterm.js)            | [ ] PENDING
+TASK-305 | Command handlers (ps/sched/mem/sync/index) | [ ] PENDING
+TASK-306 | App.tsx (wire everything)          | [ ] PENDING
+
+PHASE_3_STATUS: NOT_STARTED
+PHASE_3_DONE: 0/6
+
+----------------------------------------------------------------
+PHASE 4 — INTEGRATION & VERIFICATION
+----------------------------------------------------------------
+TASK-401 | Full stack smoke test (all commands) | [ ] PENDING
+TASK-402 | Edge cases and polish               | [ ] PENDING
+
+PHASE_4_STATUS: NOT_STARTED
+PHASE_4_DONE: 0/2
+
+----------------------------------------------------------------
+PHASE 5 — REPORT & README
+----------------------------------------------------------------
+TASK-501 | Experiment data + report/charts.html | [ ] PENDING
+TASK-502 | README.md                            | [ ] PENDING
+
+PHASE_5_STATUS: NOT_STARTED
+PHASE_5_DONE: 0/2
+
+----------------------------------------------------------------
+VERIFICATION CHECKLIST (agent fills at TASK-401)
+----------------------------------------------------------------
+[ ] cmake build exits 0
+[ ] ping command returns GhostKernel Engine 1.0
+[ ] experiment_run returns 12 results
+[ ] server /ping returns ok via curl
+[ ] boot sequence animation plays
+[ ] amber terminal prompt visible
+[ ] help command lists all commands
+[ ] ghostfetch shows live stats
+[ ] ps / spawn / kill working
+[ ] sched run shows ASCII Gantt
+[ ] sched compare shows 4-algo table
+[ ] mem map shows frame table
+[ ] mem compare shows FIFO/LRU/Optimal (Optimal wins)
+[ ] sync demo producer-consumer streams events
+[ ] sync demo dining-deadlock shows DEADLOCK in red
+[ ] experiment run shows 12-row table
+[ ] arrow up/down navigates history
+[ ] window resize reflits xterm
+[ ] report/charts.html renders 4 charts
+
+----------------------------------------------------------------
+BLOCKERS LOG
+----------------------------------------------------------------
+(agent writes here if blocked — include task id, error, attempted fix)
+
+----------------------------------------------------------------
+TASK NOTES LOG
+----------------------------------------------------------------
+(agent writes implementation notes, decisions, deviations from PRD)
+
+TASK-002: [agent fills if nlohmann download method changes]
+TASK-102: [agent fills FCFS verification result]
+TASK-103: [agent fills FIFO/LRU/Optimal verification result]
+TASK-104: [agent fills deadlock test result]
+TASK-105: [agent fills experiment_run verification result]
+
+----------------------------------------------------------------
+MILESTONES
+----------------------------------------------------------------
+MILESTONE_1: Phase 0 + Phase 1 complete — C++ kernel works standalone
+  STATUS: NOT_REACHED
+  TARGET: After TASK-105
+
+MILESTONE_2: Phase 2 complete — Node bridge passing all commands
+  STATUS: NOT_REACHED
+  TARGET: After TASK-202
+
+MILESTONE_3: Phase 3 complete — React terminal functional in browser
+  STATUS: NOT_REACHED
+  TARGET: After TASK-306
+
+MILESTONE_4: Phase 4 complete — Full integration passing all smoke tests
+  STATUS: NOT_REACHED
+  TARGET: After TASK-402
+
+MILESTONE_5: Phase 5 complete — Report assets and README done
+  STATUS: NOT_REACHED
+  TARGET: After TASK-502
+
+================================================================
+AGENT UPDATE INSTRUCTIONS
+================================================================
+After completing a task:
+  1. Change [ ] PENDING  →  [X] DONE  for that task line
+  2. Update PHASE_N_DONE counter
+  3. If all tasks in phase done: set PHASE_N_STATUS: COMPLETE
+  4. Update CURRENT_TASK to next pending task
+  5. Recalculate OVERALL_PROGRESS = (done_tasks / 17) * 100, round to nearest 5%
+  6. Update LAST_UPDATED to current timestamp
+  7. If milestone reached: set MILESTONE_N STATUS: REACHED
+  8. If blocked: set BLOCKERS: <description>, set CURRENT_TASK: BLOCKED
+================================================================
+END OF PROGRESS TRACKER
+================================================================
